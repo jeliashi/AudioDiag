@@ -1,0 +1,25 @@
+from numpy import empty,nan,random
+from pandas import DataFrame
+
+
+# returns np array of length nrows
+class Noise:
+	def __init__(self, generate=True, samp_freq=48000):
+		self.generate = generate
+		self.samp_freq = samp_freq
+
+	def PinkNoise(self, nrows, ncols=16):
+		array = empty((nrows, ncols))
+		array.fill(nan)
+		array[0, :] = random.random(ncols)
+		array[:, 0] = random.random(nrows)
+
+		cols = random.geometric(0.5, nrows)
+		cols[cols >= ncols] = 0
+		rows = random.randint(nrows, size=nrows)
+		array[rows, cols] = random.random(nrows)
+
+		df = DataFrame(array)
+		df.fillna(method='ffill', axis=0, inplace=True)
+		total = df.sum(axis=1)
+		return total.values
