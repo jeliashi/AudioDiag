@@ -2,21 +2,31 @@ import pyaudio
 from PyQt5.QtWidgets import (QLabel, QVBoxLayout, QHBoxLayout, QRadioButton,
                              QWidget, QComboBox, QSpinBox, QCheckBox,
                              QGroupBox, QSlider, QPushButton)
-from PyQt5.QtCore import Qt
+from PyQt5.QtCore import Qt, QObject, pyqtSignal
 
 
-class Settings:
+class Settings(QObject):
+
+	#Add signal to inform changes:
+	changedValue = pyqtSignal(int)
+
+
 	def __init__(self):
+		super().__init__()
 		self.generateBool = False
 		self.type = 'Noise'
 		self.subType = 'Pink'
-		self.tone = 440
-		self.out_port = 0
-		self.in_port = 1
-		self.ref_port = 1
+		self.toneF = 440
+		self.out_port = 1
+		self.in_port = 0
+		self.ref_port = 0
 		self.minF = 100
 		self.maxF = 12000
 		self.samp_freq = 48000
+
+	def on_changed_value(self, value):
+		self.changedValue.emit(value)
+
 
 
 class SettingsPane(QWidget):
@@ -38,24 +48,40 @@ class SettingsPane(QWidget):
 		self.createUI()
 
 	def createUI(self):
+		# create overarching container
 		self.layout = QVBoxLayout()
 		self.setLayout(self.layout)
 
+		# This will be the container for all the possible sound productions
 		self.produceLayout = QVBoxLayout()
 
+		# Here we provide options to make sound
 		self.produceBoolCheck = QCheckBox('Produce Sound:  ')
 		self.produceBoolCheck.setChecked(False)
+		self.produceBoolCheck.stateChanged.connect(self.produceChanged)
+
+		#Overarching Box for types of sound to produce
 		self.produceType = QGroupBox()
 		self.produceTone = QRadioButton('Tone')
 		self.produceNoise = QRadioButton('Noise')
+
+		#Box for type of tone to produce
 		self.produceToneBox = QGroupBox()
 		self.produceSineTone = QRadioButton('Sine Wave')
 		self.produceTriTone = QRadioButton('Triangle Wave')
 		self.produceSqTone = QRadioButton('Square Wave')
+
+		# Settings the tone frequency
+		self.toneLayout = QHBoxLayout()
+		self.toneLabel = QLabel(str(self.toneF))
 		self.ToneSlider = QSlider(Qt.Horizontal)
 		self.ToneSlider.setRange(20, 20000)
+		self.ToneSlider.setValue(self.toneF)
 		self.ToneSlider.valueChanged.connect(self.newTone)
-		self.ToneSlider.sliderReleased.connect(self.newTone)
+		self.toneLayout.addWidget(self.toneLabel)
+		self.toneLayout.addWidget(self.ToneSlider)
+
+		# Types of Noise being produced
 		self.produceNoiseBox = QGroupBox()
 		self.WhiteNoise = QRadioButton('White')
 		self.PinkNoise = QRadioButton('Pink')
@@ -68,7 +94,7 @@ class SettingsPane(QWidget):
 		self.toneBoxupper.addWidget(self.produceTriTone)
 		self.toneBoxupper.addWidget(self.produceSqTone)
 		self.toneBox.addWidget(self.produceToneBox)
-		self.toneBox.addWidget(self.ToneSlider)
+		self.toneBox.addLayout(self.toneLayout)
 		self.produceToneBox.setLayout(self.toneBoxupper)
 
 		self.noiseBox = QVBoxLayout()
@@ -139,6 +165,7 @@ class SettingsPane(QWidget):
 		self.updateSettingsButton = QPushButton('Update Settings')
 		self.updateSettingsButton.pressed.connect(self.updateSettings)
 
+		self.layout.addWidget(self.produceBoolCheck)
 		self.layout.addLayout(self.produceBox)
 
 		self.layout.addLayout(self.outlayout)
@@ -148,23 +175,34 @@ class SettingsPane(QWidget):
 		self.layout.addLayout(self.highFreqlayout)
 		self.layout.addWidget(self.updateSettingsButton)
 
+	def produceChanged(self):
+		self.settings.generateBool = self.produceBoolCheck.isChecked()
+		self.settings.on_changed_value(-1)
+
 	def outActivate(self, key):
 		self.settings.out_port = self.outputOptions[key]
+		self.settings.on_changed_value(0)
 
 	def inActivate(self, key):
 		self.settings.in_port = self.inputOptions[key]
+		self.settings.on_changed_value(1)
 
 	def refActivate(self, key):
 		self.settings.ref_port = self.inputOptions[key]
+		self.settings.on_changed_value(2)
 
 	def lowFChange(self):
 		self.settings.minF = self.lowFreqSlider.value()
+		self.settings.on_changed_value(3)
 
 	def highFChange(self):
 		self.settings.maxF = self.highFreqSlider.value()
+		self.settings.on_changed_value(4)
 
 	def newTone(self):
-		self.toneF = self.ToneSlider.value()
+		self.settings.toneF = self.ToneSlider.value()
+		self.toneLabel.setText(str(self.settings.toneF))
+		self.settings.on_changed_value(5)
 
 	def updateSettings(self):
 		self.settings.generateBool = self.produceBoolCheck.isChecked()
