@@ -17,7 +17,7 @@ class OutputSound(object):
 
 
 		#produces signal in 0.1 second intervals
-		self.CHUNK = int(self.samp_freq)
+		self.CHUNK = int(self.samp_freq/10)
 
 		p = pyaudio.PyAudio()
 

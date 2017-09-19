@@ -3,7 +3,6 @@ from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as NavBar
 from matplotlib.figure import Figure
 import matplotlib.pyplot as plt
 from scipy.signal import csd
-
 from PyQt5.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QLabel,
                              QCheckBox, QSlider)
 from PyQt5.QtCore import QThread, pyqtSignal
