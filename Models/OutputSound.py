@@ -1,9 +1,9 @@
 from .Noise import Noise
 import pyaudio
 import numpy as np
-import socket
-from time import sleep
-import threading
+# import socket
+# from time import sleep
+# import threading
 
 
 class OutputSound(object):
@@ -28,20 +28,16 @@ class OutputSound(object):
 
 
 	def produceSound(self):
-		if self.generateBool == True:
+		out_data = float
+		if self.type == 'Noise':
+			if self.subType == 'Pink':
+				out_data = self.outProducer.PinkNoise(self.CHUNK, 16)
+			else:
+				out_data = np.empty(self.CHUNK)
 
-			if self.type == 'Noise':
-				if self.subType == 'Pink':
-					out_data = self.outProducer.PinkNoise(self.CHUNK, 16)
-				else:
-					out_data = np.empty(self.CHUNK)
 
-
-			self.stream.write(out_data)
+		self.stream.write(out_data)
 
 	def stopSound(self):
 		self.stream.stop_stream()
 		self.stream.close()
-
-
-

@@ -1,23 +1,13 @@
-import sys
-import os
-import json
-import numpy as np
-import subprocess
 import pyaudio
-import atexit
-
-from PyQt5.QtSerialPort import *
-
 from PyQt5.QtWidgets import (QLabel, QVBoxLayout, QHBoxLayout, QRadioButton,
                              QWidget, QComboBox, QSpinBox, QCheckBox,
                              QGroupBox, QSlider, QPushButton)
-from PyQt5.QtGui import *
-
 from PyQt5.QtCore import Qt
 
-class Settings():
+
+class Settings:
 	def __init__(self):
-		self.generatBool = False
+		self.generateBool = False
 		self.type = 'Noise'
 		self.subType = 'Pink'
 		self.tone = 440
@@ -27,6 +17,7 @@ class Settings():
 		self.minF = 100
 		self.maxF = 12000
 		self.samp_freq = 48000
+
 
 class SettingsPane(QWidget):
 	def __init__(self):
@@ -38,11 +29,11 @@ class SettingsPane(QWidget):
 		p = pyaudio.PyAudio()
 		info = p.get_host_api_info_by_index(0)
 		N_dev = info.get('deviceCount')
-		for i in range(0,N_dev):
-			if p.get_device_info_by_host_api_device_index(0,i).get('maxInputChannels')>0:
-				self.inputOptions[p.get_device_info_by_host_api_device_index(0,i).get('name')]=i
-			if p.get_device_info_by_host_api_device_index(0,i).get('maxOutputChannels')>0:
-				self.outputOptions[p.get_device_info_by_host_api_device_index(0,i).get('name')]=i
+		for i in range(0, N_dev):
+			if p.get_device_info_by_host_api_device_index(0, i).get('maxInputChannels') > 0:
+				self.inputOptions[p.get_device_info_by_host_api_device_index(0, i).get('name')] = i
+			if p.get_device_info_by_host_api_device_index(0, i).get('maxOutputChannels') > 0:
+				self.outputOptions[p.get_device_info_by_host_api_device_index(0, i).get('name')] = i
 
 		self.createUI()
 
@@ -62,7 +53,7 @@ class SettingsPane(QWidget):
 		self.produceTriTone = QRadioButton('Triangle Wave')
 		self.produceSqTone = QRadioButton('Square Wave')
 		self.ToneSlider = QSlider(Qt.Horizontal)
-		self.ToneSlider.setRange(20,20000)
+		self.ToneSlider.setRange(20, 20000)
 		self.ToneSlider.valueChanged.connect(self.newTone)
 		self.ToneSlider.sliderReleased.connect(self.newTone)
 		self.produceNoiseBox = QGroupBox()
@@ -92,7 +83,6 @@ class SettingsPane(QWidget):
 		self.produceBox.addLayout(self.toneBox)
 		self.produceBox.addWidget(self.produceNoise)
 		self.produceBox.addWidget(self.produceNoiseBox)
-
 
 		self.outlayout = QHBoxLayout()
 		self.outLabel = QLabel('Output Device: ')
@@ -126,12 +116,11 @@ class SettingsPane(QWidget):
 		self.reflayout.addWidget(self.refLabel)
 		self.reflayout.addWidget(self.refPortList)
 
-
 		self.lowFreqlayout = QHBoxLayout()
 		self.lowFreqLabel = QLabel()
 		self.lowFreqLabel.setText('Lower Freq Limit (Hz)')
 		self.lowFreqSlider = QSpinBox()
-		self.lowFreqSlider.setRange(20,1000)
+		self.lowFreqSlider.setRange(20, 1000)
 		self.lowFreqSlider.setValue(100)
 		self.lowFreqSlider.valueChanged.connect(self.lowFChange)
 		self.lowFreqlayout.addWidget(self.lowFreqLabel)
@@ -158,7 +147,6 @@ class SettingsPane(QWidget):
 		self.layout.addLayout(self.lowFreqlayout)
 		self.layout.addLayout(self.highFreqlayout)
 		self.layout.addWidget(self.updateSettingsButton)
-
 
 	def outActivate(self, key):
 		self.settings.out_port = self.outputOptions[key]

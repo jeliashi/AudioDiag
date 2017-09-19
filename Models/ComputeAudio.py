@@ -2,6 +2,7 @@ from PyQt5.QtWidgets import QWidget
 from .InputSound import *
 from .OutputSound import *
 
+
 class AudioDisplay(QWidget):
 	def __init__(self, settings):
 		super().__init__()
