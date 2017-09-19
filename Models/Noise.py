@@ -1,4 +1,4 @@
-from numpy import empty,nan,random
+from numpy import empty,nan,random, sin, pi, arange, float32
 from pandas import DataFrame
 
 
@@ -37,12 +37,16 @@ class Tone:
 	def __init__(self):
 		pass
 
-	def SineWave(self, nrows):
+	def SineWave(self, nrows, toneF, phase):
+		vals = 2*pi*arange(nrows)*(toneF)/nrows - phase
+		samples = (sin(vals)).astype(float32)
+		phase = vals[-1]%(2*pi)
+		return samples, phase
+
+
+	def TriWave(self, nrows, toneF):
 		pass
 
-	def TriWave(self, nrows):
-		pass
-
-	def SqWave(self, nrows):
+	def SqWave(self, nrows, toneF):
 		pass
 

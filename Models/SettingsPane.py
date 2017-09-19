@@ -64,12 +64,17 @@ class SettingsPane(QWidget):
 		self.produceType = QGroupBox()
 		self.produceTone = QRadioButton('Tone')
 		self.produceNoise = QRadioButton('Noise')
+		self.produceTone.clicked.connect(self.newOutputType)
+		self.produceNoise.clicked.connect(self.newOutputType)
 
 		#Box for type of tone to produce
 		self.produceToneBox = QGroupBox()
 		self.produceSineTone = QRadioButton('Sine Wave')
 		self.produceTriTone = QRadioButton('Triangle Wave')
 		self.produceSqTone = QRadioButton('Square Wave')
+		self.produceSineTone.clicked.connect(self.newToneType)
+		self.produceTriTone.clicked.connect(self.newToneType)
+		self.produceSqTone.clicked.connect(self.newToneType)
 
 		# Settings the tone frequency
 		self.toneLayout = QHBoxLayout()
@@ -87,6 +92,10 @@ class SettingsPane(QWidget):
 		self.PinkNoise = QRadioButton('Pink')
 		self.RedNoise = QRadioButton('Red')
 		self.BlueNoise = QRadioButton('Blue')
+		self.WhiteNoise.clicked.connect(self.newNoiseType)
+		self.PinkNoise.clicked.connect(self.newNoiseType)
+		self.RedNoise.clicked.connect(self.newNoiseType)
+		self.BlueNoise.clicked.connect(self.newNoiseType)
 
 		self.toneBox = QVBoxLayout()
 		self.toneBoxupper = QVBoxLayout()
@@ -194,6 +203,37 @@ class SettingsPane(QWidget):
 	def lowFChange(self):
 		self.settings.minF = self.lowFreqSlider.value()
 		self.settings.on_changed_value(3)
+
+	def newOutputType(self):
+		if self.produceTone.isChecked():
+			self.settings.type = 'Tone'
+			self.newToneType()
+		else:
+			self.settings.type = 'Noise'
+			self.newNoiseType()
+		self.settings.on_changed_value(-2)
+
+	def newToneType(self):
+		if self.produceTone.isChecked():
+			if self.produceSineTone.isChecked():
+				self.settings.subType = 'Sine'
+			elif self.produceTriTone.isChecked():
+				self.settings.subType = 'Triangle'
+			else:
+				self.settings.subType = 'Square'
+		self.settings.on_changed_value(-3)
+
+	def newNoiseType(self):
+		if self.produceNoise.isChecked():
+			if self.PinkNoise.isChecked():
+				self.settings.subType = 'Pink'
+			elif self.WhiteNoise.isChecked():
+				self.settings.subType = 'White'
+			elif self.RedNoise.isChecked():
+				self.settings.subType = 'Red'
+			else:
+				self.settings.subType = 'Blue'
+		self.settings.on_changed_value(-3)
 
 	def highFChange(self):
 		self.settings.maxF = self.highFreqSlider.value()

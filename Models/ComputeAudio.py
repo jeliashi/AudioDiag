@@ -37,35 +37,34 @@ class Sounds(QRunnable):
 		self.args = args
 		self.kwargs = kwargs
 		self.settings = settings
-		# self.settings.changedValue.connect(self.adjustParams)
-
+		self.outStream = OutputSound(self.settings)
+		self.outStream.startSound()
 
 	@pyqtSlot()
 	def run(self):
 		'''
 		Sounds to run
 		'''
-		outStream = OutputSound(self.settings.out_port, self.settings.samp_freq, type=self.settings.type,
-		                        subType=self.settings.subType, toneF=self.settings.toneF)
-		outStream.startSound()
+		self.outStream = OutputSound(self.settings)
+		self.outStream.startSound()
 		while True:
 
 			if self.settings.generateBool== True:
-
-				outStream.produceSound()
+				self.outStream.newValues(self.settings)
+				self.outStream.produceSound()
 			if self.settings.toneF == -1:
 				break
-		outStream.stopSound()
 
 
 	# def adjustParams(self, val):
-	# 	print(val)
+	# 	self.outStream.newValues(self.settings)
 
 
 class AudioDisplay(QWidget):
 	def __init__(self, settings):
 		super().__init__()
 		self.threadPool = QThreadPool()
+		# self.settings.
 		self.graphs = Graphs(settings)
 		self.threadPool.start(self.graphs)
 		self.sounds = Sounds(settings)
