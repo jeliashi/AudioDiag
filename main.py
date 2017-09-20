@@ -26,6 +26,7 @@ class App(QFrame):
 		self.audioDisplay = AudioDisplay(self.settings.settings)
 
 		self.container.addWidget(self.settings)
+		self.container.addWidget(self.audioDisplay)
 		self.setLayout(self.container)
 
 		self.show()

@@ -22,7 +22,7 @@ class Settings(QObject):
 		self.ref_port = 0
 		self.minF = 100
 		self.maxF = 12000
-		self.samp_freq = 48000
+		self.samp_freq = 44100
 
 	def on_changed_value(self, value):
 		self.changedValue.emit(value)
