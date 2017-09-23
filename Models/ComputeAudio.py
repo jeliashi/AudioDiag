@@ -2,12 +2,13 @@ from PyQt5.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout,
                              QLabel, QCheckBox, QSlider)
 from .InputSound import *
 from .OutputSound import *
-from PyQt5.QtCore import pyqtSlot, QRunnable, QThreadPool, Qt, QTimer
+from PyQt5.QtCore import pyqtSlot, QRunnable, QThreadPool, Qt
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as Figure
 from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as NavigationToolbar
-import time
+import matplotlib.ticker as ticker
 import numpy as np
+from scipy.interpolate import interp1d
 
 
 class MplFigure(object):
@@ -26,16 +27,17 @@ class Graphs(QRunnable):
 		self.fixedGainSlider = gain_slide
 		self.settings = settings
 		self.settings.changedValue.connect(self.adjustParams)
-		# self.timer = QTimer()
-		# self.timer.timeout.connect(self.handleNewData)
-		# self.timer.start(10)
 
 		self.mpl_figure = mpl_figure
 		self.input = InputSound(settings)
 		self.input.startIn()
 
-		self.freq_vect = np.fft.rfftfreq(int(self.settings.samp_freq/20),
+		self.freq_vect = np.exp(np.linspace(np.log(20),np.log(20000),1000))
+		self.rfft_vect =  np.fft.rfftfreq(int(self.settings.samp_freq/20),
 		                                 1./self.settings.samp_freq )
+
+		# self.freq_vect = np.fft.rfftfreq(int(self.settings.samp_freq/20),
+		#                                  1./self.settings.samp_freq )
 		print('length of freq vect: ', len(self.freq_vect))
 		self.time_vect = np.arange(self.settings.samp_freq/20, dtype=np.float32)/self.settings.samp_freq*1000
 		print('length of time vect: ', len(self.time_vect))
@@ -46,15 +48,27 @@ class Graphs(QRunnable):
 		self.ax_top.set_xlabel(u'time (ms)', fontsize=6)
 
 		self.ax_bottom = self.mpl_figure.figure.add_subplot(212)
-		self.ax_bottom.set_ylim(0, 1)
-		self.ax_bottom.set_xlim(0, self.freq_vect.max())
+		self.ax_bottom.set_ylim(-20, 0)
+		minors = [20, 31, 40, 50, 63, 80, 100, 120, 160, 200, 250, 310, 400, 500, 630, 800, 1000, 1200, 1600, 2000,
+		                          2500, 3100, 4000, 5000, 6300, 8000, 10000, 12000, 15000, 20000]
+		majors = [20, 80,160, 310, 630, 1200, 2500, 5000, 10000, 20000]
+		self.ax_bottom.set_xscale('log')
+		self.ax_bottom.set_xticks(majors)
+		self.ax_bottom.get_xaxis().set_major_formatter(ticker.ScalarFormatter())
+		self.ax_bottom.set_xticklabels(["20","80","160","310","630","1.2k","2.5k","5k","10k","20k"])
+		# self.ax_bottom.set_xticks(minors)
+		# self.ax_bottom.xaxis.set_major_locator(ticker.FixedLocator(majors))
+		# self.ax_bottom.xaxis.set_minor_locator(ticker.FixedLocator(minors))
+		self.ax_bottom.set_xlim(self.settings.minF, self.settings.maxF)
 		self.ax_bottom.set_xlabel(u'frequency (Hz)', fontsize=6)
+
 		self.line_top, = self.ax_top.plot(self.time_vect,
 		                                  np.ones_like(self.time_vect))
 
 		self.line_bottom, = self.ax_bottom.plot(self.freq_vect,
 		                                        np.ones_like(self.freq_vect))
 
+	def labelFunc(self, label, pos): return label
 
 	def handleNewData(self):
 		data = self.input.get_frames()
@@ -66,15 +80,18 @@ class Graphs(QRunnable):
 			# 	current_frame = current_frame[-Nt:]
 			self.line_top.set_data(self.time_vect[-len(current_frame):], current_frame)
 
-			fft_frame = np.fft.rfft(current_frame)
-			if self.autoGainCheckBox.isChecked() == True:
-				fft_frame /= np.abs(fft_frame).max()
-			else:
-				fft_frame *= (1+ self.fixedGainSlider.value()) / 5000000.
+			interp_Frame = interp1d(self.rfft_vect, np.fft.rfft(current_frame), 'cubic')
+			fft_frame = interp_Frame(self.freq_vect)
+			fft_frame = 20*np.log10(fft_frame/5000000)
+			# if self.autoGainCheckBox.isChecked() == True:
+			# 	fft_frame /= np.abs(fft_frame).max()
+			# else:
+			# 	fft_frame *= (1+ self.fixedGainSlider.value()) / 5000000.
 
-			self.line_bottom.set_data(self.freq_vect[-len(fft_frame):], np.abs(fft_frame))
+			self.line_bottom.set_data(self.freq_vect, np.abs(fft_frame))
 
-			self.mpl_figure.canvas.draw()
+
+			self.mpl_figure.canvas.draw_idle()
 
 
 	def computeFFT(self):
@@ -160,10 +177,3 @@ class AudioDisplay(QWidget):
 
 		self.setLayout(vbox)
 		# self.setGeometry(300,300,350,300)
-
-
-
-
-
-
-
