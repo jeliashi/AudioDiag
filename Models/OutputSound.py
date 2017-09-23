@@ -16,10 +16,10 @@ class OutputSound(object):
 		# self.type = settings.type
 		# self.subType = settings.subType
 		# self.toneF = settings.toneF
-
+		self.CHUNK_freq = 20
 
 		#produces signal in 0.1 second intervals
-		self.CHUNK = int(self.settings.samp_freq)
+		self.CHUNK = int(self.settings.samp_freq)//self.CHUNK_freq
 		self.phase = 0
 
 		self.p = pyaudio.PyAudio()
@@ -44,7 +44,7 @@ class OutputSound(object):
 			else: out_data = np.empty(self.CHUNK)
 
 
-		self.stream.write(out_data)
+		self.stream.write(out_data.astype(np.float32).tostring())
 
 	def stopSound(self):
 		self.stream.stop_stream()
@@ -77,10 +77,9 @@ class OutputSound(object):
 		pass
 
 	def SineWave(self, nrows, toneF):
-		vals = 2*pi*arange(nrows)*(toneF)/nrows + self.phase
+		vals = 2*pi*arange(nrows)*(toneF//self.CHUNK_freq)/nrows + self.phase
 		samples = (sin(vals)).astype(float32)
 		self.phase = 2*pi - vals[-1]%(2*pi)
-		print(self.phase)
 		return samples
 
 
